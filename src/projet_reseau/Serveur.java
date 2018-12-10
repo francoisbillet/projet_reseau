@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package projet_reseau;
 
 import java.io.BufferedReader;
@@ -11,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Scanner;
 
 /**
  *
@@ -20,50 +16,50 @@ public class Serveur {
     
     public static void main(String[] args) {
         
-        ServerSocket serverSocket = null;
+        ServerSocket socketserver;
+        Socket client;
+        BufferedReader in;
+        PrintWriter out;
+
         try {
-            serverSocket = new ServerSocket(4444);
-            Socket client= serverSocket.accept();
-            BufferedReader in = new BufferedReader (new InputStreamReader(client.getInputStream()));
-            PrintWriter out = new PrintWriter(client.getOutputStream(), true);
             
+            socketserver = new ServerSocket(4444);
+            Socket clientSocket = null;
+            Scanner s = new Scanner(System.in);
+            client = socketserver.accept();
+            out = new PrintWriter(client.getOutputStream(), true);
+            in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+            boolean etat = false;
+
             while (true) {
-            out.flush();
-            String message_client=in.readLine();
-            System.out.println("Client : "+message_client);
+                if (etat) { // envoie du message
+                    String message = s.nextLine();
+                    out.println(message);
+                    out.flush();
+                    etat = false;
+                } 
+                
+                else { // écoute du message
+                    String message_reçu = in.readLine();
+                    try {
+                        System.out.println("message reçu: " + message_reçu);
+                        if (message_reçu.equals("bye")) {
+                            break;
+                        }
+                    } catch (NullPointerException e) {
+                        break;
+                    }
+                    etat = true;
+                }
             }
-        }
-        catch(IOException e) {
-            System.out.println("Could not listen on port 4444");
+            out.close();
+            in.close();
+            client.close();
+            socketserver.close();
+            
+        } catch (IOException e) {
+            System.out.println("On ne peut pas écouter le port 4444");
             System.exit(-1);
         }
-        
-//        Socket clientSocket = null;
-//        try {
-//            clientSocket = serverSocket.accept();
-//        }
-//        catch(IOException e) {
-//            System.out.println("Accept failed on port 4444");
-//            System.exit(-1);
-//        }
-        
-        
-		/*ServerSocket server;
-		Socket client;
-		try{
-			server= new ServerSocket(4444);
-			client= server.accept();
-			BufferedReader in = new BufferedReader (new InputStreamReader(client.getInputStream()));
-			PrintWriter out = new PrintWriter(client.getOutputStream(), true);
-			out.println("Je suis ton serveur");
-		    out.flush();
-		    String message_client ;
-		    message_client = in.readLine();
-		    System.out.println("Client : "+message_client); 
-		}
-		catch(IOException i){
-			i.printStackTrace();
-			System.out.println("Impossible d'écouter sur le port 4444: serait-il occupé?");
-		}*/
+    }
 	}
-}
